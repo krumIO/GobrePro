@@ -1,0 +1,17 @@
+---
+services:
+  web:
+    build:
+      dockerfile: Dockerfile
+      context: ./
+    command: go run .
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./
+          target: /app
+    restart: always
+    ports:
+      - "8081:8081"
+    volumes:
+      - "/dev/shm:/dev/shm"

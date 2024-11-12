@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package="/gobre";
+
+service Gobre {
+  rpc HandleRequest(Request) returns (Response);
+}
+
+message Request {
+  string OriginalFileType = 1;
+  string NewFileType = 2;
+  bytes FileData = 3;
+}
+
+message Response {
+  bytes FileData = 1;
+}
+
