@@ -16,7 +16,8 @@ type GobreServer struct {
 }
 
 func (s GobreServer)HandleRequest(
-	ctx context.Context, param *proto.Request,
+	ctx context.Context, 
+	param *proto.Request,
 )(*proto.Response, error){
 	fileData := lo.HandleConvertFile(
 		param.OriginalFileType,
@@ -27,7 +28,7 @@ func (s GobreServer)HandleRequest(
 	return &proto.Response{FileData: fileData}, nil
 }
 
-func StartServer(){
+func StartServer(ctx context.Context) {
 	listener, listenErr := net.Listen("tcp", ":8081")
 	if listenErr != nil {
 		panic(listenErr)
@@ -37,5 +38,12 @@ func StartServer(){
 	reflection.Register(server) //Enabled for clients that support reflection
 	proto.RegisterGobreServer(server, GobreServer{})
 
+	// Start the server in a separate goroutine
+	go func() {
+		<-ctx.Done()
+		server.Stop()
+	}()
+
+	// Serve the server
 	server.Serve(listener)
 }

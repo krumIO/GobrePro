@@ -1,0 +1,592 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>libreoffice: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">main/libreoffice/convert.go (88.5%)</option>
+				
+				<option value="file1">main/main.go (0.0%)</option>
+				
+				<option value="file2">main/proto/gobre/service.pb.go (50.8%)</option>
+				
+				<option value="file3">main/proto/gobre/service_grpc.pb.go (58.8%)</option>
+				
+				<option value="file4">main/server/start_server.go (91.7%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package libreoffice
+
+import (
+        "os"
+        "fmt"
+        "os/exec"
+        "strconv"
+        "math/rand"
+        
+        "google.golang.org/grpc/codes"
+        "google.golang.org/grpc/status"
+)
+
+var (
+        storagePath="/dev/shm/"
+)
+
+func HandleConvertFile(
+        ogFileType string, 
+        newFileType string, 
+        fileData []byte,
+)([]byte)<span class="cov8" title="1">{
+        if len(ogFileType) == 0 || len(newFileType) == 0</span><span class="cov0" title="0">{
+                status.Error(codes.NotFound, "Invlaid file types")
+        }</span>
+
+        <span class="cov8" title="1">randBytes := strconv.Itoa(rand.Int())
+
+        filePtr, _ := os.OpenFile(
+                storagePath + randBytes, 
+                os.O_WRONLY|os.O_CREATE, 
+                0644,
+        )
+
+        bodyBytes := fileData
+
+        _, fileWriteError := filePtr.Write(bodyBytes)
+        if fileWriteError != nil </span><span class="cov0" title="0">{
+                status.Error(codes.FailedPrecondition, fmt.Sprint(fileWriteError))
+        }</span>
+        <span class="cov8" title="1">filePtr.Close()
+
+        libreofficeCmdError := runLibreoffice(ogFileType, newFileType, randBytes)
+        if libreofficeCmdError != nil </span><span class="cov0" title="0">{
+                status.Error(codes.Unknown, fmt.Sprint(libreofficeCmdError))
+        }</span>
+
+        <span class="cov8" title="1">data, readFileError := os.ReadFile(storagePath + randBytes + "." + newFileType)
+        if readFileError != nil </span><span class="cov8" title="1">{
+                status.Error(codes.FailedPrecondition, fmt.Sprint(readFileError))
+        }</span>
+
+        <span class="cov8" title="1">cleanDevShm(randBytes, newFileType)
+        return data</span>
+}
+
+func runLibreoffice(
+        ogFileType string,
+        newFileType string, 
+        randBytes string,
+)error<span class="cov8" title="1">{
+        var libreofficeOptions string
+        if ogFileType == "pdf" </span><span class="cov8" title="1">{
+                libreofficeOptions = "--infilter='writer_pdf_import'"
+        }</span>
+        <span class="cov8" title="1">libreofficeCmd := exec.Command(
+                "bash",
+                "-c",
+                "libreoffice " + libreofficeOptions +
+                " -env:UserInstallation=file://" + storagePath + randBytes + "_lo " + 
+                "--headless --convert-to " + newFileType + " " + randBytes,
+        )
+
+        libreofficeCmd.Dir="/dev/shm"
+        return libreofficeCmd.Run()</span>
+}
+
+func cleanDevShm(fileName string, newFileType string)<span class="cov8" title="1">{
+        os.Remove(storagePath + fileName)
+        os.Remove(storagePath + fileName + "." + newFileType)
+        os.RemoveAll(storagePath + fileName + "_lo")
+}</span>
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package main
+
+import (
+        "context"
+        server "main/server"
+)
+
+func main()<span class="cov0" title="0">{
+        ctx := context.Background()
+        server.StartServer(ctx)
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">// Code generated by protoc-gen-go. DO NOT EDIT.
+// versions:
+//         protoc-gen-go v1.25.0-devel
+//         protoc        v3.14.0
+// source: service.proto
+
+package gobre
+
+import (
+        protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+        protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+        reflect "reflect"
+        sync "sync"
+)
+
+const (
+        // Verify that this generated code is sufficiently up-to-date.
+        _ = protoimpl.EnforceVersion(20 - protoimpl.MinVersion)
+        // Verify that runtime/protoimpl is sufficiently up-to-date.
+        _ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
+)
+
+type Request struct {
+        state         protoimpl.MessageState
+        sizeCache     protoimpl.SizeCache
+        unknownFields protoimpl.UnknownFields
+
+        OriginalFileType string `protobuf:"bytes,1,opt,name=OriginalFileType,proto3" json:"OriginalFileType,omitempty"`
+        NewFileType      string `protobuf:"bytes,2,opt,name=NewFileType,proto3" json:"NewFileType,omitempty"`
+        FileData         []byte `protobuf:"bytes,3,opt,name=FileData,proto3" json:"FileData,omitempty"`
+}
+
+func (x *Request) Reset() <span class="cov8" title="1">{
+        *x = Request{}
+        if protoimpl.UnsafeEnabled </span><span class="cov8" title="1">{
+                mi := &amp;file_service_proto_msgTypes[0]
+                ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+                ms.StoreMessageInfo(mi)
+        }</span>
+}
+
+func (x *Request) String() string <span class="cov0" title="0">{
+        return protoimpl.X.MessageStringOf(x)
+}</span>
+
+func (*Request) ProtoMessage() {<span class="cov0" title="0">}</span>
+
+func (x *Request) ProtoReflect() protoreflect.Message <span class="cov8" title="1">{
+        mi := &amp;file_service_proto_msgTypes[0]
+        if protoimpl.UnsafeEnabled &amp;&amp; x != nil </span><span class="cov8" title="1">{
+                ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+                if ms.LoadMessageInfo() == nil </span><span class="cov8" title="1">{
+                        ms.StoreMessageInfo(mi)
+                }</span>
+                <span class="cov8" title="1">return ms</span>
+        }
+        <span class="cov0" title="0">return mi.MessageOf(x)</span>
+}
+
+// Deprecated: Use Request.ProtoReflect.Descriptor instead.
+func (*Request) Descriptor() ([]byte, []int) <span class="cov0" title="0">{
+        return file_service_proto_rawDescGZIP(), []int{0}
+}</span>
+
+func (x *Request) GetOriginalFileType() string <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.OriginalFileType
+        }</span>
+        <span class="cov0" title="0">return ""</span>
+}
+
+func (x *Request) GetNewFileType() string <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.NewFileType
+        }</span>
+        <span class="cov0" title="0">return ""</span>
+}
+
+func (x *Request) GetFileData() []byte <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.FileData
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+type Response struct {
+        state         protoimpl.MessageState
+        sizeCache     protoimpl.SizeCache
+        unknownFields protoimpl.UnknownFields
+
+        FileData []byte `protobuf:"bytes,1,opt,name=FileData,proto3" json:"FileData,omitempty"`
+}
+
+func (x *Response) Reset() <span class="cov8" title="1">{
+        *x = Response{}
+        if protoimpl.UnsafeEnabled </span><span class="cov8" title="1">{
+                mi := &amp;file_service_proto_msgTypes[1]
+                ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+                ms.StoreMessageInfo(mi)
+        }</span>
+}
+
+func (x *Response) String() string <span class="cov0" title="0">{
+        return protoimpl.X.MessageStringOf(x)
+}</span>
+
+func (*Response) ProtoMessage() {<span class="cov0" title="0">}</span>
+
+func (x *Response) ProtoReflect() protoreflect.Message <span class="cov8" title="1">{
+        mi := &amp;file_service_proto_msgTypes[1]
+        if protoimpl.UnsafeEnabled &amp;&amp; x != nil </span><span class="cov8" title="1">{
+                ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+                if ms.LoadMessageInfo() == nil </span><span class="cov8" title="1">{
+                        ms.StoreMessageInfo(mi)
+                }</span>
+                <span class="cov8" title="1">return ms</span>
+        }
+        <span class="cov0" title="0">return mi.MessageOf(x)</span>
+}
+
+// Deprecated: Use Response.ProtoReflect.Descriptor instead.
+func (*Response) Descriptor() ([]byte, []int) <span class="cov0" title="0">{
+        return file_service_proto_rawDescGZIP(), []int{1}
+}</span>
+
+func (x *Response) GetFileData() []byte <span class="cov8" title="1">{
+        if x != nil </span><span class="cov8" title="1">{
+                return x.FileData
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+var File_service_proto protoreflect.FileDescriptor
+
+var file_service_proto_rawDesc = []byte{
+        0x0a, 0x0d, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12,
+        0x05, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x73, 0x0a, 0x07, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+        0x74, 0x12, 0x2a, 0x0a, 0x10, 0x4f, 0x72, 0x69, 0x67, 0x69, 0x6e, 0x61, 0x6c, 0x46, 0x69, 0x6c,
+        0x65, 0x54, 0x79, 0x70, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x10, 0x4f, 0x72, 0x69,
+        0x67, 0x69, 0x6e, 0x61, 0x6c, 0x46, 0x69, 0x6c, 0x65, 0x54, 0x79, 0x70, 0x65, 0x12, 0x20, 0x0a,
+        0x0b, 0x4e, 0x65, 0x77, 0x46, 0x69, 0x6c, 0x65, 0x54, 0x79, 0x70, 0x65, 0x18, 0x02, 0x20, 0x01,
+        0x28, 0x09, 0x52, 0x0b, 0x4e, 0x65, 0x77, 0x46, 0x69, 0x6c, 0x65, 0x54, 0x79, 0x70, 0x65, 0x12,
+        0x1a, 0x0a, 0x08, 0x46, 0x69, 0x6c, 0x65, 0x44, 0x61, 0x74, 0x61, 0x18, 0x03, 0x20, 0x01, 0x28,
+        0x0c, 0x52, 0x08, 0x46, 0x69, 0x6c, 0x65, 0x44, 0x61, 0x74, 0x61, 0x22, 0x26, 0x0a, 0x08, 0x52,
+        0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x46, 0x69, 0x6c, 0x65, 0x44,
+        0x61, 0x74, 0x61, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x08, 0x46, 0x69, 0x6c, 0x65, 0x44,
+        0x61, 0x74, 0x61, 0x32, 0x39, 0x0a, 0x05, 0x47, 0x6f, 0x62, 0x72, 0x65, 0x12, 0x30, 0x0a, 0x0d,
+        0x48, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x2e,
+        0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0f, 0x2e,
+        0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x08,
+        0x5a, 0x06, 0x2f, 0x67, 0x6f, 0x62, 0x72, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+}
+
+var (
+        file_service_proto_rawDescOnce sync.Once
+        file_service_proto_rawDescData = file_service_proto_rawDesc
+)
+
+func file_service_proto_rawDescGZIP() []byte <span class="cov0" title="0">{
+        file_service_proto_rawDescOnce.Do(func() </span><span class="cov0" title="0">{
+                file_service_proto_rawDescData = protoimpl.X.CompressGZIP(file_service_proto_rawDescData)
+        }</span>)
+        <span class="cov0" title="0">return file_service_proto_rawDescData</span>
+}
+
+var file_service_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_service_proto_goTypes = []interface{}{
+        (*Request)(nil),  // 0: proto.Request
+        (*Response)(nil), // 1: proto.Response
+}
+var file_service_proto_depIdxs = []int32{
+        0, // 0: proto.Gobre.HandleRequest:input_type -&gt; proto.Request
+        1, // 1: proto.Gobre.HandleRequest:output_type -&gt; proto.Response
+        1, // [1:2] is the sub-list for method output_type
+        0, // [0:1] is the sub-list for method input_type
+        0, // [0:0] is the sub-list for extension type_name
+        0, // [0:0] is the sub-list for extension extendee
+        0, // [0:0] is the sub-list for field type_name
+}
+
+func init() <span class="cov8" title="1">{ file_service_proto_init() }</span>
+func file_service_proto_init() <span class="cov8" title="1">{
+        if File_service_proto != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+        <span class="cov8" title="1">if !protoimpl.UnsafeEnabled </span><span class="cov0" title="0">{
+                file_service_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} </span><span class="cov0" title="0">{
+                        switch v := v.(*Request); i </span>{
+                        case 0:<span class="cov0" title="0">
+                                return &amp;v.state</span>
+                        case 1:<span class="cov0" title="0">
+                                return &amp;v.sizeCache</span>
+                        case 2:<span class="cov0" title="0">
+                                return &amp;v.unknownFields</span>
+                        default:<span class="cov0" title="0">
+                                return nil</span>
+                        }
+                }
+                <span class="cov0" title="0">file_service_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} </span><span class="cov0" title="0">{
+                        switch v := v.(*Response); i </span>{
+                        case 0:<span class="cov0" title="0">
+                                return &amp;v.state</span>
+                        case 1:<span class="cov0" title="0">
+                                return &amp;v.sizeCache</span>
+                        case 2:<span class="cov0" title="0">
+                                return &amp;v.unknownFields</span>
+                        default:<span class="cov0" title="0">
+                                return nil</span>
+                        }
+                }
+        }
+        <span class="cov8" title="1">type x struct{}
+        out := protoimpl.TypeBuilder{
+                File: protoimpl.DescBuilder{
+                        GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
+                        RawDescriptor: file_service_proto_rawDesc,
+                        NumEnums:      0,
+                        NumMessages:   2,
+                        NumExtensions: 0,
+                        NumServices:   1,
+                },
+                GoTypes:           file_service_proto_goTypes,
+                DependencyIndexes: file_service_proto_depIdxs,
+                MessageInfos:      file_service_proto_msgTypes,
+        }.Build()
+        File_service_proto = out.File
+        file_service_proto_rawDesc = nil
+        file_service_proto_goTypes = nil
+        file_service_proto_depIdxs = nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">// Code generated by protoc-gen-go-grpc. DO NOT EDIT.
+
+package gobre
+
+import (
+        context "context"
+        grpc "google.golang.org/grpc"
+        codes "google.golang.org/grpc/codes"
+        status "google.golang.org/grpc/status"
+)
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the grpc package it is being compiled against.
+// Requires gRPC-Go v1.32.0 or later.
+const _ = grpc.SupportPackageIsVersion7
+
+// GobreClient is the client API for Gobre service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type GobreClient interface {
+        HandleRequest(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
+}
+
+type gobreClient struct {
+        cc grpc.ClientConnInterface
+}
+
+func NewGobreClient(cc grpc.ClientConnInterface) GobreClient <span class="cov8" title="1">{
+        return &amp;gobreClient{cc}
+}</span>
+
+func (c *gobreClient) HandleRequest(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error) <span class="cov8" title="1">{
+        out := new(Response)
+        err := c.cc.Invoke(ctx, "/proto.Gobre/HandleRequest", in, out, opts...)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return out, nil</span>
+}
+
+// GobreServer is the server API for Gobre service.
+// All implementations must embed UnimplementedGobreServer
+// for forward compatibility
+type GobreServer interface {
+        HandleRequest(context.Context, *Request) (*Response, error)
+        mustEmbedUnimplementedGobreServer()
+}
+
+// UnimplementedGobreServer must be embedded to have forward compatible implementations.
+type UnimplementedGobreServer struct {
+}
+
+func (UnimplementedGobreServer) HandleRequest(context.Context, *Request) (*Response, error) <span class="cov0" title="0">{
+        return nil, status.Errorf(codes.Unimplemented, "method HandleRequest not implemented")
+}</span>
+func (UnimplementedGobreServer) mustEmbedUnimplementedGobreServer() {<span class="cov0" title="0">}</span>
+
+// UnsafeGobreServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to GobreServer will
+// result in compilation errors.
+type UnsafeGobreServer interface {
+        mustEmbedUnimplementedGobreServer()
+}
+
+func RegisterGobreServer(s grpc.ServiceRegistrar, srv GobreServer) <span class="cov8" title="1">{
+        s.RegisterService(&amp;Gobre_ServiceDesc, srv)
+}</span>
+
+func _Gobre_HandleRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) <span class="cov8" title="1">{
+        in := new(Request)
+        if err := dec(in); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">if interceptor == nil </span><span class="cov8" title="1">{
+                return srv.(GobreServer).HandleRequest(ctx, in)
+        }</span>
+        <span class="cov0" title="0">info := &amp;grpc.UnaryServerInfo{
+                Server:     srv,
+                FullMethod: "/proto.Gobre/HandleRequest",
+        }
+        handler := func(ctx context.Context, req interface{}) (interface{}, error) </span><span class="cov0" title="0">{
+                return srv.(GobreServer).HandleRequest(ctx, req.(*Request))
+        }</span>
+        <span class="cov0" title="0">return interceptor(ctx, in, info, handler)</span>
+}
+
+// Gobre_ServiceDesc is the grpc.ServiceDesc for Gobre service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Gobre_ServiceDesc = grpc.ServiceDesc{
+        ServiceName: "proto.Gobre",
+        HandlerType: (*GobreServer)(nil),
+        Methods: []grpc.MethodDesc{
+                {
+                        MethodName: "HandleRequest",
+                        Handler:    _Gobre_HandleRequest_Handler,
+                },
+        },
+        Streams:  []grpc.StreamDesc{},
+        Metadata: "service.proto",
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package server
+
+import (
+        "context"
+        "net"
+
+        lo "main/libreoffice"
+        proto "main/proto/gobre"
+
+        "google.golang.org/grpc"
+        "google.golang.org/grpc/reflection"
+)
+
+type GobreServer struct {
+        proto.UnimplementedGobreServer
+}
+
+func (s GobreServer)HandleRequest(
+        ctx context.Context, 
+        param *proto.Request,
+)(*proto.Response, error)<span class="cov8" title="1">{
+        fileData := lo.HandleConvertFile(
+                param.OriginalFileType,
+                param.NewFileType,
+                param.FileData,
+        )        
+
+        return &amp;proto.Response{FileData: fileData}, nil
+}</span>
+
+func StartServer(ctx context.Context) <span class="cov8" title="1">{
+        listener, listenErr := net.Listen("tcp", ":8081")
+        if listenErr != nil </span><span class="cov0" title="0">{
+                panic(listenErr)</span>
+        }
+
+        <span class="cov8" title="1">server := grpc.NewServer()
+        reflection.Register(server) //Enabled for clients that support reflection
+        proto.RegisterGobreServer(server, GobreServer{})
+
+        // Start the server in a separate goroutine
+        go func() </span><span class="cov8" title="1">{
+                &lt;-ctx.Done()
+                server.Stop()
+        }</span>()
+
+        // Serve the server
+        <span class="cov8" title="1">server.Serve(listener)</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
