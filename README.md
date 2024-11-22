@@ -38,5 +38,11 @@ Build and deploy to your cluster based on your configuration.
 
 *Note you can use reflection on your client to get the avaiable service definitions and data structures. 
 
+## Running Tests
+```
+go test -v -cover ./... -coverprofile test_data/cover.out
+go tool cover -html test_data/cover.out -o test_data/cover.html
+```
+
 ## Contributing 
 Please make an issue with a detailed description of your feature or problem. 

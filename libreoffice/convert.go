@@ -51,7 +51,6 @@ func HandleConvertFile(
 	}
 
 	cleanDevShm(randBytes, newFileType)
-
 	return data
 }
 

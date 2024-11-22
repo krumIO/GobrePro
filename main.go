@@ -1,12 +1,11 @@
 package main
 
 import (
+	"context"
 	server "main/server"
 )
 
-
 func main(){
-	server.StartServer()
+	ctx := context.Background()
+	server.StartServer(ctx)
 }
-
-
