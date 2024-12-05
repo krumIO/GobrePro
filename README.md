@@ -45,4 +45,4 @@ go tool cover -html test_data/cover.out -o test_data/cover.html
 ```
 
 ## Contributing 
-Please make an issue with a detailed description of your feature or problem.  
+Please make an issue with a detailed description of your feature or problem. 
