@@ -14,6 +14,16 @@ GRPC: https://pkg.go.dev/google.golang.org/grpc
 ## Running
 This can largely change based on your configuration, so keep that in mind. 
 
+### Using protoc
+In order to make modifications or expand the API you must use the protoc tool 
+to generate the protobuf files without having to write them yourself. 
+Run the command below to re-generate these files: 
+
+`protoc proto/service.proto --go_out=proto/ --go_opt=paths=source_relative 
+--proto_path=proto/ --go-grpc_out=proto/ --go-grpc_opt=paths=source_relative`
+
+Then copy those generated files to proto/gobre and your client. 
+
 ### Running with just Golang
 `go run .`
 
