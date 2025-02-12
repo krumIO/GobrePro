@@ -4,17 +4,24 @@ package proto;
 
 option go_package="/gobre";
 
-service Gobre {
-  rpc HandleRequest(Request) returns (Response);
+service Gobre{
+  rpc HandleFileRequest(FileRequest) returns (FileResponse);
+  rpc HandleHealthRequest(HealthRequest) returns (HealthResponse);
 }
 
-message Request {
+message HealthRequest{}
+
+message HealthResponse{
+  string Response = 1;
+}
+
+message FileRequest{
   string OriginalFileType = 1;
   string NewFileType = 2;
   bytes FileData = 3;
 }
 
-message Response {
+message FileResponse{
   bytes FileData = 1;
 }
 
