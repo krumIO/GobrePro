@@ -6,13 +6,6 @@ option go_package="/gobre";
 
 service Gobre{
   rpc HandleFileRequest(FileRequest) returns (FileResponse);
-  rpc HandleHealthRequest(HealthRequest) returns (HealthResponse);
-}
-
-message HealthRequest{}
-
-message HealthResponse{
-  string Response = 1;
 }
 
 message FileRequest{
