@@ -19,7 +19,6 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GobreClient interface {
 	HandleFileRequest(ctx context.Context, in *FileRequest, opts ...grpc.CallOption) (*FileResponse, error)
-	HandleHealthRequest(ctx context.Context, in *HealthRequest, opts ...grpc.CallOption) (*HealthResponse, error)
 }
 
 type gobreClient struct {
@@ -39,21 +38,11 @@ func (c *gobreClient) HandleFileRequest(ctx context.Context, in *FileRequest, op
 	return out, nil
 }
 
-func (c *gobreClient) HandleHealthRequest(ctx context.Context, in *HealthRequest, opts ...grpc.CallOption) (*HealthResponse, error) {
-	out := new(HealthResponse)
-	err := c.cc.Invoke(ctx, "/proto.Gobre/HandleHealthRequest", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // GobreServer is the server API for Gobre service.
 // All implementations must embed UnimplementedGobreServer
 // for forward compatibility
 type GobreServer interface {
 	HandleFileRequest(context.Context, *FileRequest) (*FileResponse, error)
-	HandleHealthRequest(context.Context, *HealthRequest) (*HealthResponse, error)
 	mustEmbedUnimplementedGobreServer()
 }
 
@@ -63,9 +52,6 @@ type UnimplementedGobreServer struct {
 
 func (UnimplementedGobreServer) HandleFileRequest(context.Context, *FileRequest) (*FileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HandleFileRequest not implemented")
-}
-func (UnimplementedGobreServer) HandleHealthRequest(context.Context, *HealthRequest) (*HealthResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method HandleHealthRequest not implemented")
 }
 func (UnimplementedGobreServer) mustEmbedUnimplementedGobreServer() {}
 
@@ -98,24 +84,6 @@ func _Gobre_HandleFileRequest_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Gobre_HandleHealthRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HealthRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GobreServer).HandleHealthRequest(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/proto.Gobre/HandleHealthRequest",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GobreServer).HandleHealthRequest(ctx, req.(*HealthRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Gobre_ServiceDesc is the grpc.ServiceDesc for Gobre service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -126,10 +94,6 @@ var Gobre_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "HandleFileRequest",
 			Handler:    _Gobre_HandleFileRequest_Handler,
-		},
-		{
-			MethodName: "HandleHealthRequest",
-			Handler:    _Gobre_HandleHealthRequest_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -24,18 +24,18 @@ func TestStartServer(t *testing.T){
 
 	client := proto.NewGobreClient(conn)
 
-	request := &proto.Request{
+	request := &proto.FileRequest{
 		FileData: []byte("<html><b>test</b></html>"),
-		NewFileType: "html",
-		OriginalFileType: "pdf",
+		NewFileType: "pdf",
+		OriginalFileType: "html",
 	}
-	response, responseErr := client.HandleRequest(context.Background(), request)
+	response, responseErr := client.HandleFileRequest(context.Background(), request)
 	
 	if responseErr != nil {
 		t.Fatal(responseErr)
 	}
 	
-	if string(response.GetFileData()) != "" {
+  if string(response.GetFileData()) == "" {
 		t.Errorf("No file data in the response.")
 	}
 

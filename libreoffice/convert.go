@@ -19,9 +19,9 @@ func HandleConvertFile(
 	ogFileType string, 
 	newFileType string, 
 	fileData []byte,
-)([]byte){
+)([]byte, error){
 	if len(ogFileType) == 0 || len(newFileType) == 0{
-		status.Error(codes.NotFound, "Invlaid file types")
+		return nil, status.Error(codes.NotFound, "Invlaid file types")
 	}
 
 	randBytes := strconv.Itoa(rand.Int())
@@ -36,22 +36,26 @@ func HandleConvertFile(
 
 	_, fileWriteError := filePtr.Write(bodyBytes)
 	if fileWriteError != nil {
-		status.Error(codes.FailedPrecondition, fmt.Sprint(fileWriteError))
+		return nil, status.Error(codes.FailedPrecondition, fmt.Sprint(fileWriteError))
 	}
 	filePtr.Close()
 
+  //Attempt to convert raw file to the original format to ensure its a valid file
+  //This also normally fixes a few formatting issues from dynamic file generators.
 	libreofficeCmdError := runLibreoffice(ogFileType, newFileType, randBytes)
 	if libreofficeCmdError != nil {
-		status.Error(codes.Unknown, fmt.Sprint(libreofficeCmdError))
+		return nil, status.Error(codes.Unknown, fmt.Sprint(libreofficeCmdError))
 	}
 
+  //Convert to new file
 	data, readFileError := os.ReadFile(storagePath + randBytes + "." + newFileType)
 	if readFileError != nil {
-		status.Error(codes.FailedPrecondition, fmt.Sprint(readFileError))
+		return nil, status.Error(codes.FailedPrecondition, fmt.Sprint(readFileError))
 	}
 
+  //Clean out files and libreoffice profile
 	cleanDevShm(randBytes, newFileType)
-	return data
+	return data, nil
 }
 
 func runLibreoffice(
