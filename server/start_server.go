@@ -22,13 +22,13 @@ func (s GobreServer)HandleFileRequest(
 	ctx context.Context, 
 	param *proto.FileRequest,
 )(*proto.FileResponse, error){
-	fileData := lo.HandleConvertFile(
+	fileData, errors := lo.HandleConvertFile(
 		param.OriginalFileType,
 		param.NewFileType,
 		param.FileData,
-	)	
+	)
 
-	return &proto.FileResponse{FileData: fileData}, nil
+	return &proto.FileResponse{FileData: fileData}, errors
 }
 
 func StartServer(ctx context.Context) {
