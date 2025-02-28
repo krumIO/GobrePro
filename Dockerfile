@@ -13,5 +13,6 @@ RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 
 USER 1000:1000
+EXPOSE 8081 #comment out if not needed for cluster
 
 CMD ["./main"]
